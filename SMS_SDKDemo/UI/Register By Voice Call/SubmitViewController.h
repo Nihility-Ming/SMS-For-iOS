@@ -7,8 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-
-#import <SMS_SDK/SMS_UserInfo.h>
+#import <SMS_SDK/SMSSDKUserInfo.h>
 
 @interface SubmitViewController : UIViewController<UIAlertViewDelegate>
 

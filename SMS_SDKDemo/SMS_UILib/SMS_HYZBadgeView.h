@@ -39,7 +39,7 @@ typedef enum {
 	UIColor * _textColor;
 	NSUInteger _pad;
     BOOL _shine;
-	UITextAlignment _alignment;
+	NSTextAlignment _alignment;
     HYZBadgePlace _place;
 }
 
@@ -62,7 +62,7 @@ typedef enum {
 @property (retain,nonatomic) UIColor* textColor;
 
 // How the badge image hould be aligned horizontally in the view. 
-@property (assign,nonatomic) UITextAlignment alignment;
+@property (assign,nonatomic) NSTextAlignment alignment;
 
 // Returns the visual size of the badge for the current value. Not the same hing as the size of the view's bounds.
 // The badge view bounds should be wider than space needed to draw the badge.

@@ -29,21 +29,21 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self)
     {
-        imageView=[[UIImageView alloc] init];
-        imageView.frame=CGRectMake(15, 5, 50, 50);
+        imageView = [[UIImageView alloc] init];
+        imageView.frame = CGRectMake(15, 5, 50, 50);
         [self.contentView addSubview:imageView];
         
         nameLabel=[[UILabel alloc] init];
-        nameLabel.frame=CGRectMake(73, 19, 98, 20);
+        nameLabel.frame = CGRectMake(73, 19, 98, 20);
         nameLabel.font = [UIFont fontWithName:@"Helvetica" size:14];
         [self.contentView addSubview:nameLabel];
         
-        _nameDescLabel=[[UILabel alloc] init];
-        _nameDescLabel.frame=CGRectMake(73, 40, 150, 15);
+        _nameDescLabel = [[UILabel alloc] init];
+        _nameDescLabel.frame = CGRectMake(73, 40, 150, 15);
         _nameDescLabel.font = [UIFont fontWithName:@"Helvetica" size:12];
         [self.contentView addSubview:_nameDescLabel];
         
-        _btn=[UIButton buttonWithType:UIButtonTypeSystem];
+        _btn = [UIButton buttonWithType:UIButtonTypeSystem];
         [_btn addTarget:self action:@selector(btnClick) forControlEvents:UIControlEventTouchUpInside];
         [_btn setTitle:@"邀请" forState:UIControlStateNormal];
         NSString *icon = [NSString stringWithFormat:@"smssdk.bundle/button2.png"];
@@ -58,7 +58,7 @@
 {
     [super layoutSubviews];
     
-    _btn.frame=CGRectMake(self.frame.size.width -80, 15, 65, 30);
+    _btn.frame = CGRectMake(self.frame.size.width -80, 15, 65, 30);
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
@@ -88,8 +88,8 @@
 {
     if (![nDesc isEqualToString:nameDesc])
     {
-        nameDesc=[nDesc copy];
-        self.nameDescLabel.text=nameDesc;
+        nameDesc = [nDesc copy];
+        self.nameDescLabel.text = nameDesc;
     }
 }
 

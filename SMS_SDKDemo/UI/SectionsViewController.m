@@ -3,7 +3,8 @@
 #import "SectionsViewController.h"
 #import "NSDictionary-DeepMutableCopy.h"
 
-#import <SMS_SDK/SMS_SDK.h>
+#import <SMS_SDK/SMSSDK.h>
+#import <SMS_SDK/SMSSDKCountryAndAreaCode.h>
 
 @interface SectionsViewController ()
 {
@@ -28,6 +29,7 @@
 
 #pragma mark -
 #pragma mark Custom Methods
+
 - (void)resetSearch
 {
     NSMutableDictionary *allNamesCopy = [self.allNames mutableDeepCopy];
@@ -38,6 +40,7 @@
                                    sortedArrayUsingSelector:@selector(compare:)]];
     self.keys = keyArray;
 }
+
 - (void)handleSearchForTerm:(NSString *)searchTerm
 {
     NSMutableArray *sectionsToRemove = [[NSMutableArray alloc] init];
@@ -62,16 +65,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.view.backgroundColor=[UIColor whiteColor];
+    self.view.backgroundColor = [UIColor whiteColor];
     
-    CGFloat statusBarHeight=0;
+    CGFloat statusBarHeight = 0;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0)
     {
-        statusBarHeight=20;
+        statusBarHeight = 20;
     }
     
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,0+statusBarHeight, self.view.frame.size.width, 44)];
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:nil];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
     UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"back", nil)
                                                                    style:UIBarButtonItemStyleBordered
                                                                   target:self
@@ -82,16 +85,16 @@
     [navigationItem setLeftBarButtonItem:leftButton];
     [self.view addSubview:navigationBar];
     
-    search=[[UISearchBar alloc] init];
-    search.frame=CGRectMake(0, 44+statusBarHeight, self.view.frame.size.width, 44);
+    search = [[UISearchBar alloc] init];
+    search.frame = CGRectMake(0, 44+statusBarHeight, self.view.frame.size.width, 44);
     [self.view addSubview:search];
     
-    table=[[UITableView alloc] initWithFrame:CGRectMake(0, 88+statusBarHeight, self.view.frame.size.width, self.view.bounds.size.height-(88+statusBarHeight)) style:UITableViewStylePlain];
+    table = [[UITableView alloc] initWithFrame:CGRectMake(0, 88+statusBarHeight, self.view.frame.size.width, self.view.bounds.size.height-(88+statusBarHeight)) style:UITableViewStylePlain];
     [self.view addSubview:table];
 
-    table.dataSource=self;
-    table.delegate=self;
-    search.delegate=self;
+    table.dataSource = self;
+    table.delegate = self;
+    search.delegate = self;
     
     NSString *path = [[NSBundle mainBundle] pathForResource:@"country"
                                                      ofType:@"plist"];
@@ -106,7 +109,7 @@
 
 -(void)setAreaArray:(NSMutableArray*)array
 {
-    _areaArray=[NSMutableArray arrayWithArray:array];
+    _areaArray = [NSMutableArray arrayWithArray:array];
 }
 
 #pragma mark Table View Data Source Methods
@@ -143,15 +146,16 @@
     }
     
     NSString* str1 = [nameSection objectAtIndex:indexPath.row];
-    NSRange range=[str1 rangeOfString:@"+"];
-    NSString* str2=[str1 substringFromIndex:range.location];
-    NSString* areaCode=[str2 stringByReplacingOccurrencesOfString:@"+" withString:@""];
-    NSString* countryName=[str1 substringToIndex:range.location];
+    NSRange range = [str1 rangeOfString:@"+"];
+    NSString* str2 = [str1 substringFromIndex:range.location];
+    NSString* areaCode = [str2 stringByReplacingOccurrencesOfString:@"+" withString:@""];
+    NSString* countryName = [str1 substringToIndex:range.location];
 
-    cell.textLabel.text=countryName;
-    cell.detailTextLabel.text=[NSString stringWithFormat:@"+%@",areaCode];
+    cell.textLabel.text = countryName;
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"+%@",areaCode];
     return cell;
 }
+
 - (NSString *)tableView:(UITableView *)tableView 
 titleForHeaderInSection:(NSInteger)section
 {
@@ -163,14 +167,16 @@ titleForHeaderInSection:(NSInteger)section
     
     return key;
 }
+
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
 {
     if (isSearching)
         return nil;
     return keys;
 }
+
 #pragma mark -
-#pragma mark Table View Delegate Methods
+#pragma mark TableViewDelegate Methods
 - (NSIndexPath *)tableView:(UITableView *)tableView 
   willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -180,6 +186,7 @@ titleForHeaderInSection:(NSInteger)section
     [tableView reloadData];
     return indexPath;
 }
+
 - (NSInteger)tableView:(UITableView *)tableView 
 sectionForSectionIndexTitle:(NSString *)title 
                atIndex:(NSInteger)index
@@ -201,14 +208,14 @@ sectionForSectionIndexTitle:(NSString *)title
     NSArray *nameSection = [names objectForKey:key];
     
     NSString* str1 = [nameSection objectAtIndex:indexPath.row];
-    NSRange range=[str1 rangeOfString:@"+"];
-    NSString* str2=[str1 substringFromIndex:range.location];
-    NSString* areaCode=[str2 stringByReplacingOccurrencesOfString:@"+" withString:@""];
-    NSString* countryName=[str1 substringToIndex:range.location];
+    NSRange range = [str1 rangeOfString:@"+"];
+    NSString* str2 = [str1 substringFromIndex:range.location];
+    NSString* areaCode = [str2 stringByReplacingOccurrencesOfString:@"+" withString:@""];
+    NSString* countryName = [str1 substringToIndex:range.location];
 
-    CountryAndAreaCode* country=[[CountryAndAreaCode alloc] init];
-    country.countryName=countryName;
-    country.areaCode=areaCode;
+    SMSSDKCountryAndAreaCode* country = [[SMSSDKCountryAndAreaCode alloc] init];
+    country.countryName = countryName;
+    country.areaCode = areaCode;
     
     NSLog(@"%@ %@",countryName,areaCode);
     
@@ -216,22 +223,22 @@ sectionForSectionIndexTitle:(NSString *)title
     
     int compareResult = 0;
     
-    for (int i=0; i<_areaArray.count; i++)
+    for (int i = 0; i<_areaArray.count; i++)
     {
-        NSDictionary* dict1=[_areaArray objectAtIndex:i];
+        NSDictionary* dict1 = [_areaArray objectAtIndex:i];
         
         [dict1 objectForKey:areaCode];
         NSString* code1 = [dict1 valueForKey:@"zone"];
         if ([code1 isEqualToString:areaCode])
         {
-            compareResult=1;
+            compareResult = 1;
             break;
         }
     }
     
     if (!compareResult)
     {
-        UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                       message:NSLocalizedString(@"doesnotsupportarea", nil)
                                                      delegate:self
                                             cancelButtonTitle:NSLocalizedString(@"sure", nil)
@@ -256,11 +263,13 @@ sectionForSectionIndexTitle:(NSString *)title
     NSString *searchTerm = [searchBar text];
     [self handleSearchForTerm:searchTerm];
 }
+
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
 {
     isSearching = YES;
     [table reloadData];
 }
+
 - (void)searchBar:(UISearchBar *)searchBar 
     textDidChange:(NSString *)searchTerm
 {

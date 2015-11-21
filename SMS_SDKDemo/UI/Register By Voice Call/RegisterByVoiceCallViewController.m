@@ -10,12 +10,15 @@
 #import "SubmitViewController.h"
 #import "SectionsViewController.h"
 
-#import <SMS_SDK/SMS_SDK.h>
-#import <SMS_SDK/CountryAndAreaCode.h>
+#import <SMS_SDK/SMSSDK.h>
+#import <SMS_SDK/SMSSDKCountryAndAreaCode.h>
+#import <SMS_SDK/SMSSDK+DeprecatedMethods.h>
+#import <SMS_SDK/SMSSDK+ExtexdMethods.h>
+#import <MOBFoundation/MOBFoundation.h>
 
 @interface RegisterByVoiceCallViewController ()
 {
-    CountryAndAreaCode* _data2;
+    SMSSDKCountryAndAreaCode* _data2;
     NSString* _str;
     NSMutableData* _data;
     int _state;
@@ -39,7 +42,7 @@
 -(void)clickLeftButton
 {
     [self dismissViewControllerAnimated:YES completion:^{
-        _window.hidden=YES;
+        _window.hidden = YES;
     }];
 }
 
@@ -59,30 +62,30 @@
 }
 
 #pragma mark - SecondViewController Delegate
-- (void)setSecondData:(CountryAndAreaCode *)data
+- (void)setSecondData:(SMSSDKCountryAndAreaCode *)data
 {
-    _data2=data;
+    _data2 = data;
     
-    self.areaCodeField.text=[NSString stringWithFormat:@"+%@",data.areaCode];
+    self.areaCodeField.text = [NSString stringWithFormat:@"+%@",data.areaCode];
     [self.tableView reloadData];
 }
 
 -(void)nextStep
 {
     int compareResult = 0;
-    for (int i=0; i<_areaArray.count; i++)
+    for (int i = 0; i<_areaArray.count; i++)
     {
-        NSDictionary* dict1=[_areaArray objectAtIndex:i];
+        NSDictionary* dict1 = [_areaArray objectAtIndex:i];
         NSString* code1 = [dict1 valueForKey:@"zone"];
         if ([code1 isEqualToString:[_areaCodeField.text stringByReplacingOccurrencesOfString:@"+" withString:@""]]) {
-            compareResult=1;
-            NSString* rule1=[dict1 valueForKey:@"rule"];
-            NSPredicate* pred=[NSPredicate predicateWithFormat:@"SELF MATCHES %@",rule1];
-            BOOL isMatch=[pred evaluateWithObject:self.telField.text];
+            compareResult = 1;
+            NSString* rule1 = [dict1 valueForKey:@"rule"];
+            NSPredicate* pred = [NSPredicate predicateWithFormat:@"SELF MATCHES %@",rule1];
+            BOOL isMatch = [pred evaluateWithObject:self.telField.text];
             if (!isMatch)
             {
                 //手机号码不正确
-                UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                               message:NSLocalizedString(@"errorphonenumber", nil)
                                                              delegate:self
                                                     cancelButtonTitle:NSLocalizedString(@"sure", nil)
@@ -96,10 +99,10 @@
     
     if (!compareResult)
     {
-        if (self.telField.text.length!=11)
+        if (self.telField.text.length != 11)
         {
             //手机号码不正确
-            UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+            UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                           message:NSLocalizedString(@"errorphonenumber", nil)
                                                          delegate:self
                                                 cancelButtonTitle:NSLocalizedString(@"sure", nil)
@@ -109,9 +112,9 @@
         }
     }
     
-    NSString* str=[NSString stringWithFormat:@"%@:%@ %@",NSLocalizedString(@"willsendthecodeto", nil),self.areaCodeField.text,self.telField.text];
-    _str=[NSString stringWithFormat:@"%@",self.telField.text];
-    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"surephonenumber", nil)
+    NSString* str = [NSString stringWithFormat:@"%@:%@ %@",NSLocalizedString(@"willsendthecodeto", nil),self.areaCodeField.text,self.telField.text];
+    _str = [NSString stringWithFormat:@"%@",self.telField.text];
+    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"surephonenumber", nil)
                                                   message:str delegate:self
                                         cancelButtonTitle:NSLocalizedString(@"cancel", nil)
                                         otherButtonTitles:NSLocalizedString(@"sure", nil), nil];
@@ -120,15 +123,16 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    if (1==buttonIndex)
+    if (1 == buttonIndex)
     {
-        SubmitViewController* verify=[[SubmitViewController alloc] init];
-        NSString* str2=[self.areaCodeField.text stringByReplacingOccurrencesOfString:@"+" withString:@""];
+        SubmitViewController* verify = [[SubmitViewController alloc] init];
+        NSString* str2 = [self.areaCodeField.text stringByReplacingOccurrencesOfString:@"+" withString:@""];
         [verify setPhone:self.telField.text AndAreaCode:str2];
         
-        [SMS_SDK getVerificationCodeByVoiceCallWithPhone:self.telField.text
-                                                    zone:str2
-                                                  result:^(SMS_SDKError *error)
+        [SMSSDK getVerificationCodeByMethod:SMSGetCodeMethodVoice phoneNumber:self.telField.text
+                                                                         zone:str2
+                                                             customIdentifier:nil
+                                                                       result:^(NSError *error)
         {
             
             if (!error)
@@ -139,15 +143,17 @@
             }
             else
             {
-                UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"codesenderrtitle", nil)
-                                                              message:[NSString stringWithFormat:@"状态码：%zi ,错误描述：%@",error.errorCode,error.errorDescription]
-                                                             delegate:self
-                                                    cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                    otherButtonTitles:nil, nil];
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"codesenderrtitle", nil)
+                                                                message:[NSString stringWithFormat:@"错误描述：%@",[error.userInfo objectForKey:@"getVerificationCode"]]
+                                                               delegate:self
+                                                      cancelButtonTitle:NSLocalizedString(@"sure", nil)
+                                                      otherButtonTitles:nil, nil];
                 [alert show];
             }
             
+            
         }];
+        
     }
 }
 
@@ -159,17 +165,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.view.backgroundColor=[UIColor whiteColor];
+    self.view.backgroundColor = [UIColor whiteColor];
     
-    CGFloat statusBarHeight=0;
+    CGFloat statusBarHeight = 0;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0)
     {
-        statusBarHeight=20;
+        statusBarHeight = 20;
     }
     
     //创建一个导航栏
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,0+statusBarHeight, self.view.frame.size.width, 44)];
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:nil];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
     UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"back", nil)
                                                                    style:UIBarButtonItemStyleBordered
                                                                   target:self
@@ -180,43 +186,43 @@
     [self.view addSubview:navigationBar];
     
     //
-    UILabel* label=[[UILabel alloc] init];
-    label.frame=CGRectMake(15, 56+statusBarHeight, self.view.frame.size.width - 30, 50);
-    label.text=[NSString stringWithFormat:NSLocalizedString(@"labelnotice", nil)];
+    UILabel* label = [[UILabel alloc] init];
+    label.frame = CGRectMake(15, 56+statusBarHeight, self.view.frame.size.width - 30, 50);
+    label.text = [NSString stringWithFormat:NSLocalizedString(@"labelnotice", nil)];
     label.numberOfLines = 0;
-    label.textAlignment = UITextAlignmentCenter;
+    label.textAlignment = NSTextAlignmentCenter;
     label.font = [UIFont fontWithName:@"Helvetica" size:16];
-    label.textColor=[UIColor darkGrayColor];
+    label.textColor = [UIColor darkGrayColor];
     [self.view addSubview:label];
     
-    UITableView* tableView=[[UITableView alloc] initWithFrame:CGRectMake(10, 106+statusBarHeight, self.view.frame.size.width - 20, 45) style:UITableViewStylePlain];
+    UITableView* tableView = [[UITableView alloc] initWithFrame:CGRectMake(10, 106+statusBarHeight, self.view.frame.size.width - 20, 45) style:UITableViewStylePlain];
     [self.view addSubview:tableView];
     
     //区域码
-    UITextField* areaCodeField=[[UITextField alloc] init];
-    areaCodeField.frame=CGRectMake(10, 155+statusBarHeight, (self.view.frame.size.width - 30)/4, 40+statusBarHeight/4);
-    areaCodeField.borderStyle=UITextBorderStyleBezel;
-    areaCodeField.text=[NSString stringWithFormat:@"+86"];
-    areaCodeField.textAlignment=UITextAlignmentCenter;
-    areaCodeField.font=[UIFont fontWithName:@"Helvetica" size:18];
-    areaCodeField.keyboardType=UIKeyboardTypePhonePad;
+    UITextField* areaCodeField = [[UITextField alloc] init];
+    areaCodeField.frame = CGRectMake(10, 155+statusBarHeight, (self.view.frame.size.width - 30)/4, 40+statusBarHeight/4);
+    areaCodeField.borderStyle = UITextBorderStyleBezel;
+    areaCodeField.text = [NSString stringWithFormat:@"+86"];
+    areaCodeField.textAlignment = NSTextAlignmentCenter;
+    areaCodeField.font = [UIFont fontWithName:@"Helvetica" size:18];
+    areaCodeField.keyboardType = UIKeyboardTypeDefault;
     [self.view addSubview:areaCodeField];
     
     //
-    UITextField* telField=[[UITextField alloc] init];
-    telField.frame=CGRectMake(20+(self.view.frame.size.width - 30)/4, 155+statusBarHeight,(self.view.frame.size.width - 30)*3/4 , 40+statusBarHeight/4);
-    telField.borderStyle=UITextBorderStyleBezel;
-    telField.placeholder=NSLocalizedString(@"telfield", nil);
-    telField.keyboardType=UIKeyboardTypePhonePad;
-    telField.clearButtonMode=UITextFieldViewModeWhileEditing;
+    UITextField* telField = [[UITextField alloc] init];
+    telField.frame = CGRectMake(20+(self.view.frame.size.width - 30)/4, 155+statusBarHeight,(self.view.frame.size.width - 30)*3/4 , 40+statusBarHeight/4);
+    telField.borderStyle = UITextBorderStyleBezel;
+    telField.placeholder = NSLocalizedString(@"telfield", nil);
+    telField.keyboardType = UIKeyboardTypeDefault;
+    telField.clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.view addSubview:telField];
     
     //
-    UIButton* nextBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    UIButton* nextBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [nextBtn setTitle:NSLocalizedString(@"nextbtn", nil) forState:UIControlStateNormal];
     NSString *icon = [NSString stringWithFormat:@"smssdk.bundle/button4.png"];
     [nextBtn setBackgroundImage:[UIImage imageNamed:icon] forState:UIControlStateNormal];
-    nextBtn.frame=CGRectMake(10, 220+statusBarHeight, self.view.frame.size.width - 20, 42);
+    nextBtn.frame = CGRectMake(10, 220+statusBarHeight, self.view.frame.size.width - 20, 42);
     [nextBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [nextBtn addTarget:self action:@selector(nextStep) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:nextBtn];
@@ -225,30 +231,83 @@
     _areaCodeField = areaCodeField;
     _tableView = tableView;
     
-    self.tableView.dataSource=self;
-    self.tableView.delegate=self;
-    self.areaCodeField.delegate=self;
-    self.telField.delegate=self;
+    self.tableView.dataSource = self;
+    self.tableView.delegate = self;
+    self.areaCodeField.delegate = self;
+    self.telField.delegate = self;
     
     _areaArray= [NSMutableArray array];
     
     //设置本地区号
     [self setTheLocalAreaCode];
-    //获取支持的地区列表
-    [SMS_SDK getZone:^(enum SMS_ResponseState state, NSArray *array) {
-        if (1==state)
-        {
-            NSLog(@"get the area code sucessfully");
-            //区号数据
-            _areaArray=[NSMutableArray arrayWithArray:array];
-        }
-        else if (0==state)
-        {
-            NSLog(@"failed to get the area code");
-        }
+    
+    
+    NSString *saveTimeString = [[NSUserDefaults standardUserDefaults] objectForKey:@"saveDate"];
+    
+    NSDateComponents *dateComponents = nil;
+    
+    if (saveTimeString.length != 0) {
         
-    }];
+        dateComponents = [self compareTwoDays:saveTimeString];
+        
+    }
+    
+    if (dateComponents.day >= 1 || saveTimeString.length == 0) { //day = 0 ,代表今天，day = 1  代表昨天  day >= 1 表示至少过了一天  saveTimeString.length == 0表示从未进行过缓存
+        
+        //获取支持的地区列表
+        [SMSSDK getCountryZone:^(NSError *error, NSArray *zonesArray) {
+            
+            if (!error) {
+                
+                NSLog(@"get the area code sucessfully");
+                //区号数据
+                _areaArray = [NSMutableArray arrayWithArray:zonesArray];
+                //获取到国家列表数据后对进行缓存
+                [[MOBFDataService sharedInstance] setCacheData:_areaArray forKey:@"countryCodeArray" domain:nil];
+                //设置缓存时间
+                NSDate *saveDate = [NSDate date];
+                [[NSUserDefaults standardUserDefaults] setObject:[MOBFDate stringByDate:saveDate withFormat:@"yyyy-MM-dd"] forKey:@"saveDate"];
+                
+                NSLog(@"_areaArray_%@",_areaArray);
+            }
+            else
+            {
+                NSLog(@"failed to get the area code _%@",[error.userInfo objectForKey:@"getZone"]);
+            }
+        }];
+    }
+    else
+    {
+        _areaArray = [[MOBFDataService sharedInstance] cacheDataForKey:@"countryCodeArray" domain:nil];
+        
+    }
+    
 }
+
+
+/**
+ *  计算两个日期的天数差
+ *
+ *  @param dateString 待计算日期
+ *
+ *  @return 返回NSDateComponents,通过属性day,可以判断待计算日期和当前日期的天数差
+ */
+- (NSDateComponents*)compareTwoDays:(NSString *)dateString
+{
+    NSCalendar *gregorian = [[NSCalendar alloc]
+                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    [gregorian setFirstWeekday:2];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+    NSDate *fromDate;
+    NSDate *toDate;
+    [gregorian rangeOfUnit:NSCalendarUnitDay startDate:&fromDate interval:NULL forDate:[dateFormatter dateFromString:dateString]];
+    [gregorian rangeOfUnit:NSCalendarUnitDay startDate:&toDate interval:NULL forDate:[NSDate date]];
+    NSDateComponents *dayComponents = [gregorian components:NSCalendarUnitDay | NSWeekdayCalendarUnit fromDate:fromDate toDate:toDate options:0];
+    
+    return dayComponents;
+}
+
 
 -(void)setTheLocalAreaCode
 {
@@ -316,13 +375,13 @@
                                @"886", @"TW", @"255", @"TZ", @"670", @"TL", @"58", @"VE",
                                @"84", @"VN", @"1", @"VG", @"1", @"VI", nil];
     
-    NSString* tt=[locale objectForKey:NSLocaleCountryCode];
-    NSString* defaultCode=[dictCodes objectForKey:tt];
-    _areaCodeField.text=[NSString stringWithFormat:@"+%@",defaultCode];
+    NSString* tt = [locale objectForKey:NSLocaleCountryCode];
+    NSString* defaultCode = [dictCodes objectForKey:tt];
+    _areaCodeField.text = [NSString stringWithFormat:@"+%@",defaultCode];
     
-    NSString* defaultCountryName=[locale displayNameForKey:NSLocaleCountryCode value:tt];
-    _defaultCode=defaultCode;
-    _defaultCountryName=defaultCountryName;
+    NSString* defaultCountryName = [locale displayNameForKey:NSLocaleCountryCode value:tt];
+    _defaultCode = defaultCode;
+    _defaultCountryName = defaultCountryName;
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -340,18 +399,18 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identifier] ;
         
     }
-    cell.textLabel.text=NSLocalizedString(@"countrylable", nil);
-    cell.textLabel.textColor=[UIColor darkGrayColor];
+    cell.textLabel.text = NSLocalizedString(@"countrylable", nil);
+    cell.textLabel.textColor = [UIColor darkGrayColor];
     
     if (_data2)
     {
-        cell.detailTextLabel.text=_data2.countryName;
+        cell.detailTextLabel.text = _data2.countryName;
     }
     else
     {
-        cell.detailTextLabel.text=_defaultCountryName;
+        cell.detailTextLabel.text = _defaultCountryName;
     }
-    cell.detailTextLabel.textColor=[UIColor blackColor];
+    cell.detailTextLabel.textColor = [UIColor blackColor];
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     
     UIView *tempView = [[UIView alloc] init];
@@ -363,8 +422,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    SectionsViewController* country2=[[SectionsViewController alloc] init];
-    country2.delegate=self;
+    SectionsViewController* country2 = [[SectionsViewController alloc] init];
+    country2.delegate = self;
+    
     [country2 setAreaArray:_areaArray];
     [self presentViewController:country2 animated:YES completion:^{
         ;

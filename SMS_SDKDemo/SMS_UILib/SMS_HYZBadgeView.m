@@ -49,7 +49,7 @@
         self.pad = 1;
         self.font = [UIFont boldSystemFontOfSize:14];
         self.shine = YES;
-        self.alignment = UITextAlignmentCenter;
+        self.alignment = NSTextAlignmentCenter;
         self.fillColor = [UIColor redColor];
         self.strokeColor = [UIColor whiteColor];
         self.textColor = [UIColor whiteColor];
@@ -77,13 +77,12 @@
 		badgeWidthAdjustment = 0;
 	}
 	
-	
 	CGMutablePathRef badgePath = CGPathCreateMutable();
 	
 	CGPathMoveToPoint( badgePath, NULL, arcRadius, 0 );
-	CGPathAddArc( badgePath, NULL, arcRadius, arcRadius, arcRadius, 3.0*kPi/2.0, kPi/2.0, YES);
-	CGPathAddLineToPoint( badgePath, NULL, badgeWidth-arcRadius, 2.0*arcRadius);
-	CGPathAddArc( badgePath, NULL, badgeWidth-arcRadius, arcRadius, arcRadius, kPi/2.0, 3.0*kPi/2.0, YES);
+	CGPathAddArc( badgePath, NULL, arcRadius, arcRadius, arcRadius, 3.0 * kPi/2.0, kPi/2.0, YES);
+	CGPathAddLineToPoint( badgePath, NULL, badgeWidth - arcRadius, 2.0 * arcRadius);
+	CGPathAddArc( badgePath, NULL, badgeWidth - arcRadius, arcRadius, arcRadius, kPi/2.0, 3.0 * kPi/2.0, YES);
 	CGPathAddLineToPoint( badgePath, NULL, arcRadius, 0 );
 	
 	return badgePath;
@@ -119,13 +118,13 @@
 	switch (self.alignment) 
 	{
 		default:
-		case UITextAlignmentCenter:
+		case NSTextAlignmentCenter:
 			ctm = CGPointMake( round((viewBounds.size.width - badgeRect.size.width)/2), round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
-		case UITextAlignmentLeft:
+		case NSTextAlignmentLeft:
 			ctm = CGPointMake( 0, round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
-		case UITextAlignmentRight:
+		case NSTextAlignmentRight:
 			ctm = CGPointMake( (viewBounds.size.width - badgeRect.size.width), round((viewBounds.size.height - badgeRect.size.height)/2) );
 			break;
 	}

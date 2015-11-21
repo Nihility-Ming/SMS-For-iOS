@@ -14,9 +14,10 @@
 #import "YJViewController.h"
 #import "RegisterByVoiceCallViewController.h"
 
-#import <SMS_SDK/SMS_SDK.h>
-#import <SMS_SDK/SMS_UserInfo.h>
-#import <SMS_SDK/SMS_AddressBook.h>
+#import <SMS_SDK/SMSSDK.h>
+#import <SMS_SDK/SMSSDKUserInfo.h>
+#import <SMS_SDK/SMSSDK+AddressBookMethods.h>
+#import <SMS_SDK/SMSSDK+DeprecatedMethods.h>
 
 @interface SubmitViewController ()
 {
@@ -35,7 +36,7 @@
     NSString* _localZoneNumber;
     NSMutableArray* _addressBookTemp;
     NSString* _contactkey;
-    SMS_UserInfo* _localUser;
+    SMSSDKUserInfo* _localUser;
     
     NSTimer* _timer1;
     NSTimer* _timer2;
@@ -57,19 +58,19 @@ static NSMutableArray* _userData2;
 
 -(void)clickLeftButton
 {
-    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                   message:NSLocalizedString(@"codedelaymsg", nil)
                                                  delegate:self
                                         cancelButtonTitle:NSLocalizedString(@"back", nil)
                                         otherButtonTitles:NSLocalizedString(@"wait", nil), nil];
-    _alert2=alert;
+    _alert2 = alert;
     [alert show];
 }
 
 -(void)setPhone:(NSString*)phone AndAreaCode:(NSString*)areaCode
 {
-    _phone=phone;
-    _areaCode=areaCode;
+    _phone = phone;
+    _areaCode = areaCode;
 }
 
 -(void)submit
@@ -80,7 +81,7 @@ static NSMutableArray* _userData2;
     
     if(self.verifyCodeField.text.length!=4)
     {
-        UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                       message:NSLocalizedString(@"verifycodeformaterror", nil)
                                                      delegate:self
                                             cancelButtonTitle:@"确定"
@@ -89,31 +90,36 @@ static NSMutableArray* _userData2;
     }
     else
     {
-        //[[SMS_SDK sharedInstance] commitVerifyCode:self.verifyCodeField.text];
-        [SMS_SDK commitVerifyCode:self.verifyCodeField.text result:^(enum SMS_ResponseState state) {
-            if (1==state)
+        
+        [SMSSDK  commitVerificationCode:self.verifyCodeField.text phoneNumber:_phone zone:_areaCode result:^(NSError *error) {
+            
+            if (!error)
             {
                 NSLog(@"验证成功");
-                NSString* str=[NSString stringWithFormat:NSLocalizedString(@"verifycoderightmsg", nil)];
-                UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"verifycoderighttitle", nil)
-                                                              message:str
-                                                             delegate:self
-                                                    cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                    otherButtonTitles:nil, nil];
+                NSString* str = [NSString stringWithFormat:NSLocalizedString(@"verifycoderightmsg", nil)];
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"verifycoderighttitle", nil)
+                                                                message:str
+                                                               delegate:self
+                                                      cancelButtonTitle:NSLocalizedString(@"sure", nil)
+                                                      otherButtonTitles:nil, nil];
                 [alert show];
-                _alert3=alert;
+                _alert3 = alert;
+                
+                
             }
-            else if(0==state)
+            else
             {
+            
                 NSLog(@"验证失败");
-                NSString* str=[NSString stringWithFormat:NSLocalizedString(@"verifycodeerrormsg", nil)];
-                UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"verifycodeerrortitle", nil)
-                                                              message:str
-                                                             delegate:self
-                                                    cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                    otherButtonTitles:nil, nil];
+                UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"verifycodeerrortitle", nil)
+                                                                message:[NSString stringWithFormat:@"%@",[error.userInfo objectForKey:@"commitVerificationCode"]]
+                                                               delegate:self
+                                                      cancelButtonTitle:NSLocalizedString(@"sure", nil)
+                                                      otherButtonTitles:nil, nil];
                 [alert show];
+            
             }
+            
         }];
     }
 }
@@ -121,52 +127,38 @@ static NSMutableArray* _userData2;
 
 -(void)CannotGetSMS
 {
-    NSString* str=[NSString stringWithFormat:@"%@:%@",NSLocalizedString(@"cannotgetsmsmsg", nil) ,_phone];
-    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"surephonenumber", nil) message:str delegate:self cancelButtonTitle:NSLocalizedString(@"cancel", nil) otherButtonTitles:NSLocalizedString(@"sure", nil), nil];
-    _alert1=alert;
+    NSString* str = [NSString stringWithFormat:@"%@:%@",NSLocalizedString(@"cannotgetsmsmsg", nil) ,_phone];
+    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"surephonenumber", nil) message:str delegate:self cancelButtonTitle:NSLocalizedString(@"cancel", nil) otherButtonTitles:NSLocalizedString(@"sure", nil), nil];
+    _alert1 = alert;
     [alert show];
 }
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    if (alertView==_alert1)
+    if (alertView == _alert1)
     {
-        if (1==buttonIndex)
+        if (1 == buttonIndex)
         {
             NSLog(@"重发验证码");
-            [SMS_SDK getVerifyCodeByPhoneNumber:_phone AndZone:_areaCode result:^(enum SMS_GetVerifyCodeResponseState state) {
-                if (1==state)
+            
+            [SMSSDK getVerificationCodeByMethod:SMSGetCodeMethodSMS phoneNumber:_phone zone:_areaCode customIdentifier:nil result:^(NSError *error) {
+                
+                if (!error)
                 {
-                    NSLog(@"block 获取验证码成功");
+                   NSLog(@"block 获取验证码成功");
+                    
+                    
                 }
-                else if(0==state)
+                else
                 {
-                    NSLog(@"block 获取验证码失败");
-                    NSString* str=[NSString stringWithFormat:NSLocalizedString(@"codesenderrormsg", nil)];
-                    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"codesenderrtitle", nil)
-                                                                  message:str
-                                                                 delegate:self
-                                                        cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                        otherButtonTitles:nil, nil];
+                
+                    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"codesenderrtitle", nil)
+                                                                    message:[NSString stringWithFormat:@"%@",[error.userInfo objectForKey:@"getVerificationCode"]]
+                                                                   delegate:self
+                                                          cancelButtonTitle:NSLocalizedString(@"sure", nil)
+                                                          otherButtonTitles:nil, nil];
                     [alert show];
-                }
-                else if (SMS_ResponseStateMaxVerifyCode==state)
-                {
-                    NSString* str=[NSString stringWithFormat:NSLocalizedString(@"maxcodemsg", nil)];
-                    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"maxcode", nil)
-                                                                  message:str delegate:self
-                                                        cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                        otherButtonTitles:nil, nil];
-                    [alert show];
-                }
-                else if(SMS_ResponseStateGetVerifyCodeTooOften==state)
-                {
-                    NSString* str=[NSString stringWithFormat:NSLocalizedString(@"codetoooftenmsg", nil)];
-                    UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
-                                                                  message:str delegate:self
-                                                        cancelButtonTitle:NSLocalizedString(@"sure", nil)
-                                                        otherButtonTitles:nil, nil];
-                    [alert show];
+                
                 }
                 
             }];
@@ -175,8 +167,8 @@ static NSMutableArray* _userData2;
         
     }
     
-    if (alertView==_alert2) {
-        if (0==buttonIndex)
+    if (alertView == _alert2) {
+        if (0 == buttonIndex)
         {
             [self dismissViewControllerAnimated:YES completion:^{
                 [_timer2 invalidate];
@@ -185,9 +177,9 @@ static NSMutableArray* _userData2;
         }
     }
     
-    if (alertView==_alert3)
+    if (alertView == _alert3)
     {
-        YJViewController* yj=[[YJViewController alloc] init];
+        YJViewController* yj = [[YJViewController alloc] init];
         [self presentViewController:yj animated:YES completion:^{
             //解决等待时间乱跳的问题
             [_timer2 invalidate];
@@ -205,16 +197,16 @@ static NSMutableArray* _userData2;
 {
     [super viewDidLoad];
     
-    self.view.backgroundColor=[UIColor whiteColor];
+    self.view.backgroundColor = [UIColor whiteColor];
     
-    CGFloat statusBarHeight=0;
+    CGFloat statusBarHeight = 0;
     if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0)
     {
-        statusBarHeight=20;
+        statusBarHeight = 20;
     }
     //创建一个导航栏
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,0+statusBarHeight, self.view.frame.size.width, 44)];
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:nil];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
     UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"back", nil)
                                                                    style:UIBarButtonItemStyleBordered
                                                                   target:self
@@ -225,73 +217,73 @@ static NSMutableArray* _userData2;
     [navigationItem setLeftBarButtonItem:leftButton];
     [self.view addSubview:navigationBar];
     
-    UILabel* label=[[UILabel alloc] init];
-    label.frame=CGRectMake(15, 53+statusBarHeight, self.view.frame.size.width - 30, 21);
-    label.text=[NSString stringWithFormat:NSLocalizedString(@"verifylabel", nil)];
-    label.textAlignment = UITextAlignmentCenter;
+    UILabel* label = [[UILabel alloc] init];
+    label.frame = CGRectMake(15, 53+statusBarHeight, self.view.frame.size.width - 30, 21);
+    label.text = [NSString stringWithFormat:NSLocalizedString(@"verifylabel", nil)];
+    label.textAlignment = NSTextAlignmentCenter;
     label.font = [UIFont fontWithName:@"Helvetica" size:17];
     [self.view addSubview:label];
     
-    _telLabel=[[UILabel alloc] init];
-    _telLabel.frame=CGRectMake(15, 82+statusBarHeight, self.view.frame.size.width - 30, 21);
-    _telLabel.textAlignment = UITextAlignmentCenter;
+    _telLabel = [[UILabel alloc] init];
+    _telLabel.frame = CGRectMake(15, 82+statusBarHeight, self.view.frame.size.width - 30, 21);
+    _telLabel.textAlignment = NSTextAlignmentCenter;
     _telLabel.font = [UIFont fontWithName:@"Helvetica" size:17];
     [self.view addSubview:_telLabel];
-    self.telLabel.text= [NSString stringWithFormat:@"+%@ %@",_areaCode,_phone];
+    self.telLabel.text = [NSString stringWithFormat:@"+%@ %@",_areaCode,_phone];
     
-    _verifyCodeField=[[UITextField alloc] init];
-    _verifyCodeField.frame=CGRectMake(15, 111+statusBarHeight, self.view.frame.size.width - 30, 46);
-    _verifyCodeField.borderStyle=UITextBorderStyleBezel;
-    _verifyCodeField.textAlignment=UITextAlignmentCenter;
-    _verifyCodeField.placeholder=NSLocalizedString(@"verifycode", nil);
-    _verifyCodeField.font=[UIFont fontWithName:@"Helvetica" size:18];
-    _verifyCodeField.keyboardType=UIKeyboardTypePhonePad;
-    _verifyCodeField.clearButtonMode=UITextFieldViewModeWhileEditing;
+    _verifyCodeField = [[UITextField alloc] init];
+    _verifyCodeField.frame = CGRectMake(15, 111+statusBarHeight, self.view.frame.size.width - 30, 46);
+    _verifyCodeField.borderStyle = UITextBorderStyleBezel;
+    _verifyCodeField.textAlignment = NSTextAlignmentCenter;
+    _verifyCodeField.placeholder = NSLocalizedString(@"verifycode", nil);
+    _verifyCodeField.font = [UIFont fontWithName:@"Helvetica" size:18];
+    _verifyCodeField.keyboardType = UIKeyboardTypeDefault;
+    _verifyCodeField.clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.view addSubview:_verifyCodeField];
     
-    _timeLabel=[[UILabel alloc] init];
-    _timeLabel.frame=CGRectMake(15, 169+statusBarHeight, self.view.frame.size.width - 30, 40);
+    _timeLabel = [[UILabel alloc] init];
+    _timeLabel.frame = CGRectMake(15, 169+statusBarHeight, self.view.frame.size.width - 30, 40);
     _timeLabel.numberOfLines = 0;
-    _timeLabel.textAlignment = UITextAlignmentCenter;
+    _timeLabel.textAlignment = NSTextAlignmentCenter;
     _timeLabel.font = [UIFont fontWithName:@"Helvetica" size:15];
-    _timeLabel.text=NSLocalizedString(@"timelabel", nil);
+    _timeLabel.text = NSLocalizedString(@"timelabel", nil);
     [self.view addSubview:_timeLabel];
     
-    _repeatSMSBtn=[UIButton buttonWithType:UIButtonTypeSystem];
-    _repeatSMSBtn.frame=CGRectMake(15, 169+statusBarHeight, self.view.frame.size.width - 30, 30);
+    _repeatSMSBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    _repeatSMSBtn.frame = CGRectMake(15, 169+statusBarHeight, self.view.frame.size.width - 30, 30);
     [_repeatSMSBtn setTitle:NSLocalizedString(@"repeatsms", nil) forState:UIControlStateNormal];
     [_repeatSMSBtn addTarget:self action:@selector(CannotGetSMS) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_repeatSMSBtn];
     
-    _submitBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    _submitBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [_submitBtn setTitle:NSLocalizedString(@"submit", nil) forState:UIControlStateNormal];
     NSString *icon = [NSString stringWithFormat:@"smssdk.bundle/button4.png"];
     [_submitBtn setBackgroundImage:[UIImage imageNamed:icon] forState:UIControlStateNormal];
-    _submitBtn.frame=CGRectMake(15, 220+statusBarHeight, self.view.frame.size.width - 30, 42);
+    _submitBtn.frame = CGRectMake(15, 220+statusBarHeight, self.view.frame.size.width - 30, 42);
     [_submitBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_submitBtn addTarget:self action:@selector(submit) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_submitBtn];
     
-    self.repeatSMSBtn.hidden=YES;
+    self.repeatSMSBtn.hidden = YES;
     
     [_timer2 invalidate];
     [_timer1 invalidate];
     
     count = 0;
     
-    NSTimer* timer=[NSTimer scheduledTimerWithTimeInterval:60
+    NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:60
                                                     target:self
                                                   selector:@selector(showRepeatButton)
                                                   userInfo:nil
                                                    repeats:YES];
     
-    NSTimer* timer2=[NSTimer scheduledTimerWithTimeInterval:1
+    NSTimer* timer2 = [NSTimer scheduledTimerWithTimeInterval:1
                                                      target:self
                                                    selector:@selector(updateTime)
                                                    userInfo:nil
                                                     repeats:YES];
-    _timer1=timer;
-    _timer2=timer2;
+    _timer1 = timer;
+    _timer2 = timer2;
     
     [SMS_MBProgressHUD showMessag:NSLocalizedString(@"sendingin", nil) toView:self.view];
     
@@ -300,17 +292,17 @@ static NSMutableArray* _userData2;
 -(void)updateTime
 {
     count++;
-    if (count>=60)
+    if (count >= 60)
     {
         [_timer2 invalidate];
         return;
     }
-    self.timeLabel.text=[NSString stringWithFormat:@"%@%i%@",NSLocalizedString(@"timelablemsg", nil),60-count,NSLocalizedString(@"second", nil)];
+    self.timeLabel.text = [NSString stringWithFormat:@"%@%i%@",NSLocalizedString(@"timelablemsg", nil),60-count,NSLocalizedString(@"second", nil)];
 }
 
 -(void)showRepeatButton{
-    self.timeLabel.hidden=YES;
-    self.repeatSMSBtn.hidden=NO;
+    self.timeLabel.hidden = YES;
+    self.repeatSMSBtn.hidden = NO;
     
     [_timer1 invalidate];
     return;

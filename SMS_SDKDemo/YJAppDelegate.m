@@ -9,7 +9,8 @@
 #import "YJAppDelegate.h"
 #import "YJViewController.h"
 
-#import <SMS_SDK/SMS_SDK.h>
+#import <SMS_SDK/SMSSDK.h>
+#import <SMS_SDK/SMSSDK+AddressBookMethods.h>
 
 #define appKey @"5b2655c71290"
 #define appSecret @"55988074b9a3faadffa6f74cd3ae7845"
@@ -22,13 +23,13 @@
     self.window.backgroundColor = [UIColor whiteColor];
     
     //初始化应用，appKey和appSecret从后台申请得到
-    [SMS_SDK registerApp:appKey
+    [SMSSDK registerApp:appKey
               withSecret:appSecret];
     
-    //[SMS_SDK enableAppContactFriends:NO];
-    
-    YJViewController* yj=[[YJViewController alloc] init];
-    self.window.rootViewController=yj;
+//    [SMSSDK enableAppContactFriends:NO];
+  
+    YJViewController* yj = [[YJViewController alloc] init];
+    self.window.rootViewController = yj;
     [self.window makeKeyAndVisible];
     return YES;
 }

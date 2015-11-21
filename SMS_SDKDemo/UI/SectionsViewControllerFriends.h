@@ -3,7 +3,7 @@
 #import <UIKit/UIKit.h>
 #import "CustomCell.h"
 
-#import <SMS_SDK/SMS_SDKResultHanderDef.h>
+#import <SMS_SDK/SMSSDKResultHanderDef.h>
 
 @interface SectionsViewControllerFriends : UIViewController
 <UITableViewDataSource,
@@ -27,12 +27,12 @@ UISearchBarDelegate>
 @property (nonatomic, strong) NSMutableArray *keys;
 
 @property (nonatomic,strong) UIWindow* window;
-@property (nonatomic,strong) ShowNewFriendsCountBlock friendsBlock;
+@property (nonatomic,strong) SMSShowNewFriendsCountBlock friendsBlock;
 
 - (void)resetSearch;
 - (void)handleSearchForTerm:(NSString *)searchTerm;
 - (void)setMyData:(NSMutableArray*) array;
-- (void)setMyBlock:(ShowNewFriendsCountBlock)block;
+- (void)setMyBlock:(SMSShowNewFriendsCountBlock)block;
 
 @end
 

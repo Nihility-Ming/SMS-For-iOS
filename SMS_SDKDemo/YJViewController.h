@@ -8,12 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-#import <SMS_SDK/SMS_SDKResultHanderDef.h>
+#import <SMS_SDK/SMSSDKResultHanderDef.h>
 
 @interface YJViewController : UIViewController
 
 @property(nonatomic,strong)  UIButton *friends;
 @property(nonatomic,strong)  UIButton *registerUserBtn;
-@property(nonatomic,strong) ShowNewFriendsCountBlock friendsBlock;
+@property(nonatomic,strong) SMSShowNewFriendsCountBlock friendsBlock;
 
 @end

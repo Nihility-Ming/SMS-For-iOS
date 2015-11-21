@@ -14,7 +14,10 @@
 #import <AddressBook/AddressBook.h>
 #import "RegisterByVoiceCallViewController.h"
 
-#import <SMS_SDK/SMS_SDK.h>
+#import <SMS_SDK/SMSSDK.h>
+#import <SMS_SDK/SMSSDK+AddressBookMethods.h>
+#import <SMS_SDK/SMSSDK+DeprecatedMethods.h>
+#import <SMS_SDK/SMSSDK+ExtexdMethods.h>
 
 
 @interface YJViewController ()
@@ -42,7 +45,7 @@ static UIAlertView* _alert1 = nil;
     }
     
     //短信验证码注册
-    UIButton* regBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    UIButton* regBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     regBtn.frame = CGRectMake(self.view.frame.size.width/2 - 100 , 50 + 1 * 70 + statusBarHeight, 200, 40);
     [regBtn setTitle:NSLocalizedString(@"RegisterBySMS", nil) forState:UIControlStateNormal];
     [regBtn setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
@@ -61,7 +64,7 @@ static UIAlertView* _alert1 = nil;
     [self.view addSubview:btn];
     
     //获取朋友列表按钮
-    UIButton* friendsBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    UIButton* friendsBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     friendsBtn.frame = CGRectMake(self.view.frame.size.width/2 - 100 , 50 + 3 * 70 + statusBarHeight, 200, 40);
     [friendsBtn setTitle:NSLocalizedString(@"addressbookfriends", nil) forState:UIControlStateNormal];
     [friendsBtn setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
@@ -79,8 +82,8 @@ static UIAlertView* _alert1 = nil;
     [self.view addSubview:infoBtn];
     
     //创建导航栏
-    UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,0+statusBarHeight, self.view.frame.size.width, 44)];
-    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:nil];
+    UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,0 + statusBarHeight, self.view.frame.size.width, 44)];
+    UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
     [navigationItem setTitle:@"SMSSDK"];
     [navigationBar pushNavigationItem:navigationItem animated:NO];
     [self.view addSubview:navigationBar];
@@ -89,47 +92,61 @@ static UIAlertView* _alert1 = nil;
     _testView = testView;
     [testView setNumber:0];
     [friendsBtn addSubview:testView];
-    
-    _friendsBlock = ^(enum SMS_ResponseState state,int latelyFriendsCount)
+     
+    _friendsBlock = ^(enum SMSResponseState state,int latelyFriendsCount)
     {
-        if (1 == state)
+        if (SMSResponseStateSuccess == state)
         {
             int count = latelyFriendsCount;
+            
             [testView setNumber:count];
         }
     };
-    [SMS_SDK showFriendsBadge:_friendsBlock];
+    [SMSSDK showFriendsBadge:_friendsBlock];
 }
 
 
 - (void)submitUserInfo:(id)sender
 {
-    [SMS_SDK submitUserInfo:nil
-                     result:^(enum SMS_ResponseState state) {
-                         if (state == SMS_ResponseStateSuccess)
-                         {
-                             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交成功"
-                                                                             message:nil
-                                                                            delegate:self
-                                                                   cancelButtonTitle:@"OK"
-                                                                   otherButtonTitles:nil, nil];
-                             [alert show];
-                         }
-                         else if (state == SMS_ResponseStateFail)
-                         {
-                             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交失败"
-                                                                             message:nil
-                                                                            delegate:self
-                                                                   cancelButtonTitle:@"OK"
-                                                                   otherButtonTitles:nil, nil];
-                             [alert show];
-                         }
-                     }];
+    SMSSDKUserInfo* userInfo=[[SMSSDKUserInfo alloc] init];
+    userInfo.avatar = @"http://123.jpg";
+    userInfo.nickname = @"Jimmy";
+    userInfo.uid = @"010";
+    //    user.phone = @"1861
+    
+    //最新方法
+    [SMSSDK submitUserInfoHandler:userInfo result:^(NSError *error) {
+        
+        if (!error)
+        {
+            
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交成功"
+                                                            message:nil
+                                                           delegate:self
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil, nil];
+            [alert show];
+            
+        }
+        else
+        {
+           
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交失败"
+                                                            message:nil
+                                                           delegate:self
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil, nil];
+            [alert show];
+        
+        }
+        
+    }];
+    
 }
 
 - (void)registerUser
 {
-    RegViewController* reg=[[RegViewController alloc] init];
+    RegViewController* reg = [[RegViewController alloc] init];
     [self presentViewController:reg animated:YES completion:^{
         
     }];
@@ -147,21 +164,26 @@ static UIAlertView* _alert1 = nil;
 - (void)getAddressBookFriends
 {
     [_testView setNumber:0];
-    SectionsViewControllerFriends* friends=[[SectionsViewControllerFriends alloc] init];
-    _friendsController=friends;
+    
+    SectionsViewControllerFriends* friends = [[SectionsViewControllerFriends alloc] init];
+    
+    _friendsController = friends;
+    
     [_friendsController setMyBlock:_friendsBlock];
+    
     [SMS_MBProgressHUD showMessag:NSLocalizedString(@"loading", nil) toView:self.view];
     
-    [SMS_SDK getAppContactFriends:1
-                           result:^(enum SMS_ResponseState state, NSArray *array)
-    {
-        if (1==state)
-        {
-            [_friendsController setMyData:[NSMutableArray arrayWithArray:array]];
+    [SMSSDK getAllContactFriends:1 result:^(NSError *error, NSArray *friendsArray) {
+        
+        if (!error) {
+            
+            [_friendsController setMyData:[NSMutableArray arrayWithArray:friendsArray]];
+            
             [self presentViewController:_friendsController animated:YES completion:^{
                 ;
             }];
         }
+        
     }];
     
     //判断用户通讯录是否授权
@@ -170,10 +192,10 @@ static UIAlertView* _alert1 = nil;
         [_alert1 show];
     }
     
-    if(ABAddressBookGetAuthorizationStatus()!=kABAuthorizationStatusAuthorized && _alert1==nil)
+    if(ABAddressBookGetAuthorizationStatus() != kABAuthorizationStatusAuthorized && _alert1 == nil)
     {
-        NSString* str=[NSString stringWithFormat:NSLocalizedString(@"authorizedcontact", nil)];
-        UIAlertView* alert=[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
+        NSString* str = [NSString stringWithFormat:NSLocalizedString(@"authorizedcontact", nil)];
+        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"notice", nil)
                                                       message:str
                                                      delegate:self
                                             cancelButtonTitle:NSLocalizedString(@"sure", nil)

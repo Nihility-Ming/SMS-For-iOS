@@ -2,7 +2,7 @@
 
 #import <UIKit/UIKit.h>
 
-#import <SMS_SDK/CountryAndAreaCode.h>
+#import <SMS_SDK/SMSSDKCountryAndAreaCode.h>
 
 @protocol SecondViewControllerDelegate;
 
@@ -34,7 +34,7 @@
 @end
 
 @protocol SecondViewControllerDelegate <NSObject>
-- (void)setSecondData:(CountryAndAreaCode *)data;
+- (void)setSecondData:(SMSSDKCountryAndAreaCode *)data;
 @end
 
 
