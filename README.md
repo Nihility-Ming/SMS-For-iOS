@@ -1,6 +1,6 @@
-# mob短信验证码SDK集成文档
+# Mob短信验证码SDK集成文档
 
-由Nihility-Ming提供的来自Mob的免费短信验证码SDK。
+由Nihility-Ming提供的来自Mob的免费短信验证码SDK。最新版本`v 1.2.0`
 
 ## CocoaPods
 
