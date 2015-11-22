@@ -40,7 +40,6 @@ pod 'SMS-For-iOS'
 
 - AddressBook.framework （通讯录功能需要）
 - AddressBookUI.framework（通讯录功能需要）
-- SMSSDKAddFramework
 
 ![image](http://wiki.mob.com/wp-content/uploads/2014/09/SMSSDKAddFramework.png)
 
